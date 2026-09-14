@@ -1,0 +1,361 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 20%, #2b1e4a 0%, #120c22 60%, #05030c 100%);
+  color: #eee;
+  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+}
+
+#game {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.player-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.side-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lp-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-name {
+  font-weight: bold;
+  color: #ffd76a;
+}
+
+.lp-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: bold;
+  min-width: 46px;
+}
+
+.lp-bar {
+  width: 160px;
+  height: 10px;
+  background: #3a3350;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #55496f;
+}
+
+.lp-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ff5f5f, #ffd76a, #6bff8f);
+  transition: width 0.4s ease;
+}
+
+.deck-info {
+  font-size: 0.85em;
+  color: #a89bd0;
+}
+
+.field {
+  display: flex;
+  gap: 10px;
+  min-height: 200px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+}
+
+.field-zone {
+  width: 140px;
+  height: 196px;
+  border: 2px dashed #4b3f6e;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field-zone.selected {
+  border-color: #ffd76a;
+  box-shadow: 0 0 10px #ffd76a;
+}
+
+.hand {
+  display: flex;
+  gap: 8px;
+  min-height: 188px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card {
+  width: 132px;
+  height: 184px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.95em;
+  color: #101018;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  animation: summonPop 0.25s ease;
+  user-select: none;
+}
+
+.card.monster {
+  background: linear-gradient(160deg, #ffe08a, #d9a441);
+}
+
+.card.has-art {
+  background-size: cover;
+  background-position: center;
+  justify-content: flex-end;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  padding: 0 6px 6px;
+}
+
+.card-art-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10, 6, 20, 0.92) 0%, rgba(10, 6, 20, 0.55) 42%, rgba(10, 6, 20, 0) 68%);
+  pointer-events: none;
+}
+
+.card.has-art .card-name,
+.card.has-art .card-stats {
+  position: relative;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.card.spell {
+  background: linear-gradient(160deg, #b98af0, #7b4fc9);
+  color: #fff;
+}
+
+.card.face-down {
+  background: repeating-linear-gradient(45deg, #372a5c, #372a5c 6px, #2a1f47 6px, #2a1f47 12px);
+  border: 1px solid #55496f;
+  cursor: default;
+}
+
+.card.selected {
+  outline: 3px solid #ffd76a;
+  transform: translateY(-6px);
+}
+
+.card-emoji {
+  font-size: 1.6em;
+}
+
+.card-name {
+  font-weight: bold;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.card-stats {
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  font-weight: bold;
+}
+
+.card-desc {
+  font-size: 0.85em;
+  margin-top: 2px;
+  line-height: 1.1;
+}
+
+#center-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+}
+
+#status-row {
+  display: flex;
+  gap: 16px;
+  font-weight: bold;
+}
+
+#turn-indicator {
+  color: #ffd76a;
+}
+
+#controls {
+  display: flex;
+  gap: 10px;
+}
+
+#controls button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(160deg, #7b4fc9, #4f2f8c);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+#controls button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+#controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#log {
+  width: 100%;
+  max-width: 480px;
+  height: 90px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid #4b3f6e;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.8em;
+  color: #c9bfe8;
+}
+
+#game-over-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 3, 12, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+#game-over-overlay.hidden {
+  display: none;
+}
+
+#game-over-box {
+  text-align: center;
+  background: #1c1533;
+  border: 2px solid #7b4fc9;
+  border-radius: 12px;
+  padding: 32px 48px;
+}
+
+#game-over-message {
+  font-size: 1.6em;
+  font-weight: bold;
+  color: #ffd76a;
+  margin-bottom: 16px;
+}
+
+#restart-btn {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(160deg, #ffe08a, #d9a441);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ---- 애니메이션 ---- */
+
+@keyframes summonPop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.field-zone.attacking .card {
+  animation: attackLunge 0.35s ease;
+}
+
+@keyframes attackLunge {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-14px) scale(1.05); }
+  100% { transform: translateY(0); }
+}
+
+.field-zone.hit-flash {
+  animation: hitShake 0.35s ease;
+}
+
+.field-zone.hit-flash .card {
+  filter: brightness(1.8) saturate(2) drop-shadow(0 0 8px #ff4d4d);
+}
+
+@keyframes hitShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.card.spell-cast {
+  animation: spellGlow 0.5s ease;
+}
+
+@keyframes spellGlow {
+  0% { box-shadow: 0 0 0 rgba(255, 215, 106, 0); }
+  50% { box-shadow: 0 0 22px 6px rgba(255, 215, 106, 0.9); }
+  100% { box-shadow: 0 0 0 rgba(255, 215, 106, 0); }
+}
+
+.card.drawn-player {
+  animation: drawInPlayer 0.35s ease;
+}
+
+@keyframes drawInPlayer {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.card.drawn-ai {
+  animation: drawInAi 0.35s ease;
+}
+
+@keyframes drawInAi {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (max-width: 520px) {
+  .field-zone, .card {
+    width: 100px;
+    height: 140px;
+  }
+  .lp-bar {
+    width: 110px;
+  }
+}
