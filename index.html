@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>듀얼 아레나</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="icon" type="image/png" href="favicon.png" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -17,9 +17,10 @@
         <span class="lp-value" id="ai-lp">4000</span>
         <div class="lp-bar"><div class="lp-bar-fill" id="ai-lp-bar"></div></div>
       </div>
-      <div class="deck-info">덱: <span id="ai-deck-count">15</span>장</div>
+      <div class="deck-info">덱: <span id="ai-deck-count">86</span>장</div>
     </div>
     <div class="field" id="ai-field"></div>
+    <div class="field spell-field" id="ai-spell-field"></div>
     <div class="hand" id="ai-hand"></div>
   </div>
 
@@ -32,14 +33,16 @@
       <button id="next-phase-btn">배틀 페이즈로</button>
       <button id="end-turn-btn">턴 종료</button>
     </div>
+    <div id="hand-actions"></div>
     <div id="log"></div>
   </div>
 
   <div id="player-area" class="player-area">
     <div class="hand" id="player-hand"></div>
+    <div class="field spell-field" id="player-spell-field"></div>
     <div class="field" id="player-field"></div>
     <div class="side-info">
-      <div class="deck-info">덱: <span id="player-deck-count">15</span>장</div>
+      <div class="deck-info">덱: <span id="player-deck-count">86</span>장</div>
       <div class="lp-display">
         <span class="player-name">나</span>
         <span class="lp-value" id="player-lp">4000</span>

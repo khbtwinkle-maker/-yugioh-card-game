@@ -98,6 +98,16 @@ body {
   box-shadow: 0 0 10px #ffd76a;
 }
 
+.field-zone.tribute-selected {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 10px #ff6b6b;
+}
+
+.spell-field .field-zone {
+  border-color: #5a3d6e;
+  border-style: dotted;
+}
+
 .hand {
   display: flex;
   gap: 8px;
@@ -122,6 +132,7 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   animation: summonPop 0.25s ease;
   user-select: none;
+  position: relative;
 }
 
 .card.monster {
@@ -129,31 +140,45 @@ body {
 }
 
 .card.has-art {
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow: hidden;
+  padding: 0;
+}
+
+.card-art {
+  width: 100%;
+  aspect-ratio: 233 / 184;
+  flex-shrink: 0;
   background-size: cover;
   background-position: center;
-  justify-content: flex-end;
-  position: relative;
-  overflow: hidden;
-  color: #fff;
-  padding: 0 6px 6px;
+  border-bottom: 2px solid #5a3d10;
 }
 
-.card-art-scrim {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(10, 6, 20, 0.92) 0%, rgba(10, 6, 20, 0.55) 42%, rgba(10, 6, 20, 0) 68%);
-  pointer-events: none;
-}
-
-.card.has-art .card-name,
-.card.has-art .card-stats {
-  position: relative;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+.card-frame {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  text-align: center;
 }
 
 .card.spell {
   background: linear-gradient(160deg, #b98af0, #7b4fc9);
   color: #fff;
+}
+
+.card.trap {
+  background: linear-gradient(160deg, #ff9d7a, #c9524f);
+  color: #fff;
+}
+
+.card.is-set {
+  outline: 2px dashed rgba(255, 215, 106, 0.7);
+  outline-offset: -2px;
 }
 
 .card.face-down {
@@ -187,6 +212,40 @@ body {
   font-size: 0.85em;
   margin-top: 2px;
   line-height: 1.1;
+}
+
+.card.negated {
+  filter: grayscale(0.6);
+}
+
+.negated-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 1;
+  background: rgba(20, 10, 30, 0.85);
+  color: #ff8f8f;
+  border: 1px solid #ff8f8f;
+  border-radius: 4px;
+  font-size: 0.62em;
+  font-weight: bold;
+  padding: 1px 5px;
+  pointer-events: none;
+}
+
+.set-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
+  background: rgba(20, 10, 30, 0.85);
+  color: #ffd76a;
+  border: 1px solid #ffd76a;
+  border-radius: 4px;
+  font-size: 0.62em;
+  font-weight: bold;
+  padding: 1px 5px;
+  pointer-events: none;
 }
 
 #center-area {
@@ -230,6 +289,37 @@ body {
 #controls button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+#hand-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  flex-wrap: wrap;
+}
+
+#hand-actions button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(160deg, #ffd76a, #d9a441);
+  color: #2a1f0a;
+  font-weight: bold;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+#hand-actions button:hover {
+  transform: translateY(-2px);
+}
+
+#hand-actions .action-hint {
+  font-size: 0.82em;
+  color: #ffb0b0;
+  font-weight: bold;
 }
 
 #log {

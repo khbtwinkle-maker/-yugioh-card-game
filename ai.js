@@ -4,51 +4,78 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function aiTakeTurn(state, render, animateAttackFn, animateSpellCastFn) {
+function aiPickTributes(field, need) {
+  const idxs = field.map((c, i) => (c ? i : -1)).filter((i) => i !== -1);
+  if (idxs.length < need) return null;
+  idxs.sort((a, b) => field[a].currentAtk - field[b].currentAtk); // 약한 몬스터부터 릴리스
+  return idxs.slice(0, need);
+}
+
+function aiRelevantDefStat(m) {
+  return m.position === 'defense' ? m.def : m.currentAtk;
+}
+
+async function aiTakeTurn(state, render, animateAttackFn, animateSpellCastFn, animateSetSpellCastFn) {
   const ai = state.ai;
   const player = state.player;
 
-  // 1) 메인 페이즈: 손패에서 가장 공격력 높은 몬스터 소환
+  // 1) 메인 페이즈: 릴리스를 감당할 수 있는 선에서 가장 공격력 높은 몬스터 소환
   if (canSummon(state, 'ai')) {
-    let bestIdx = -1;
-    let bestAtk = -1;
-    ai.hand.forEach((c, i) => {
-      if (c.type === 'monster' && c.atk > bestAtk) {
-        bestAtk = c.atk;
-        bestIdx = i;
+    const candidates = ai.hand
+      .map((c, i) => ({ c, i }))
+      .filter((x) => x.c.type === 'monster')
+      .sort((a, b) => b.c.atk - a.c.atk);
+    for (const { c, i } of candidates) {
+      const need = requiredTributes(c.level);
+      const tributes = need > 0 ? aiPickTributes(ai.field, need) : [];
+      if (tributes !== null) {
+        summonMonster(state, 'ai', i, undefined, 'attack', tributes);
+        render();
+        await sleep(700);
+        break;
       }
-    });
-    if (bestIdx !== -1) {
-      const fieldIdx = ai.field.findIndex((z) => z === null);
-      summonMonster(state, 'ai', bestIdx, fieldIdx);
-      render();
-      await sleep(700);
     }
   }
 
-  // 2) 마법 사용 판단
+  // 2) 손패의 함정(항상)과 마법(가끔)을 마법/함정 존에 세트
+  {
+    let guard = 0;
+    while (guard++ < 5 && ai.spellField.some((z) => z === null)) {
+      const idx = ai.hand.findIndex((c) => c.type === 'trap' || (c.type === 'spell' && Math.random() < 0.35));
+      if (idx === -1) break;
+      setSpellOrTrap(state, 'ai', idx);
+      render();
+      await sleep(400);
+    }
+  }
+
+  // 3) 마법 사용 판단 (손패 + 세트된 마법 카드 모두 후보)
   if (!ai.hasCastSpellThisTurn) {
-    let spellIdx = -1;
+    const findInHand = (pred) => {
+      const idx = ai.hand.findIndex((c) => c.type === 'spell' && pred(c));
+      return idx !== -1 ? { source: 'hand', index: idx, card: ai.hand[idx] } : null;
+    };
+    const findInSet = (pred) => {
+      const idx = ai.spellField.findIndex((c) => c && c.type === 'spell' && c.setPly < state.ply && pred(c));
+      return idx !== -1 ? { source: 'set', index: idx, card: ai.spellField[idx] } : null;
+    };
 
-    // 내 라이프가 낮으면 회복 우선
+    let choice = null;
     if (ai.lp <= 1500) {
-      spellIdx = ai.hand.findIndex((c) => c.type === 'spell' && c.effect === 'heal');
+      choice = findInHand((c) => c.effect === 'heal') || findInSet((c) => c.effect === 'heal');
     }
-    // 상대 라이프를 데미지 카드로 끝낼 수 있으면 사용
-    if (spellIdx === -1) {
-      spellIdx = ai.hand.findIndex(
-        (c) => c.type === 'spell' && c.effect === 'damage' && c.value >= player.lp
-      );
+    if (!choice) {
+      choice =
+        findInHand((c) => c.effect === 'damage' && c.value >= player.lp) ||
+        findInSet((c) => c.effect === 'damage' && c.value >= player.lp);
     }
-    // 필드에 몬스터가 있으면 절반 확률로 버프 사용
-    if (spellIdx === -1 && ai.field.some((z) => z !== null) && Math.random() < 0.5) {
-      spellIdx = ai.hand.findIndex((c) => c.type === 'spell' && c.effect === 'buff');
+    if (!choice && ai.field.some((z) => z !== null) && Math.random() < 0.5) {
+      choice = findInHand((c) => c.effect === 'buff') || findInSet((c) => c.effect === 'buff');
     }
 
-    if (spellIdx !== -1) {
-      const card = ai.hand[spellIdx];
+    if (choice) {
       let targetIdx;
-      if (card.effect === 'buff') {
+      if (choice.card.effect === 'buff') {
         let bestFieldIdx = -1;
         let bestFieldAtk = -1;
         ai.field.forEach((m, i) => {
@@ -57,29 +84,31 @@ async function aiTakeTurn(state, render, animateAttackFn, animateSpellCastFn) {
             bestFieldIdx = i;
           }
         });
-        if (bestFieldIdx === -1) {
-          spellIdx = -1;
-        } else {
-          targetIdx = bestFieldIdx;
-        }
+        if (bestFieldIdx === -1) choice = null;
+        else targetIdx = bestFieldIdx;
       }
-      if (spellIdx !== -1) {
-        if (animateSpellCastFn) await animateSpellCastFn('ai', spellIdx);
-        castSpell(state, 'ai', spellIdx, targetIdx);
+      if (choice) {
+        if (choice.source === 'hand') {
+          if (animateSpellCastFn) await animateSpellCastFn('ai', choice.index);
+          castSpell(state, 'ai', choice.index, targetIdx);
+        } else {
+          if (animateSetSpellCastFn) await animateSetSpellCastFn('ai', choice.index);
+          activateSetSpell(state, 'ai', choice.index, targetIdx);
+        }
         render();
         await sleep(700);
       }
     }
   }
 
-  // 3) 배틀 페이즈
+  // 4) 배틀 페이즈
   state.phase = 'battle';
   render();
   await sleep(400);
 
   for (let i = 0; i < ai.field.length; i++) {
     const attacker = ai.field[i];
-    if (!attacker || attacker.hasAttackedThisTurn) continue;
+    if (!attacker || attacker.hasAttackedThisTurn || attacker.position !== 'attack') continue;
 
     const hasTargets = player.field.some((z) => z !== null);
 
@@ -93,8 +122,8 @@ async function aiTakeTurn(state, render, animateAttackFn, animateSpellCastFn) {
 
     let targetIdx = -1;
     player.field.forEach((def, j) => {
-      if (def && attacker.currentAtk > def.currentAtk) {
-        if (targetIdx === -1 || def.currentAtk > player.field[targetIdx].currentAtk) {
+      if (def && attacker.currentAtk > aiRelevantDefStat(def)) {
+        if (targetIdx === -1 || aiRelevantDefStat(def) > aiRelevantDefStat(player.field[targetIdx])) {
           targetIdx = j;
         }
       }
