@@ -31,6 +31,14 @@ const els = {
   gameOverOverlay: document.getElementById('game-over-overlay'),
   gameOverMessage: document.getElementById('game-over-message'),
   restartBtn: document.getElementById('restart-btn'),
+  cardDetailOverlay: document.getElementById('card-detail-overlay'),
+  cardDetailBox: document.getElementById('card-detail-box'),
+  cardDetailClose: document.getElementById('card-detail-close'),
+  cardDetailArt: document.getElementById('card-detail-art'),
+  cardDetailEmoji: document.getElementById('card-detail-emoji'),
+  cardDetailName: document.getElementById('card-detail-name'),
+  cardDetailMeta: document.getElementById('card-detail-meta'),
+  cardDetailDesc: document.getElementById('card-detail-desc'),
 };
 
 function cardHtml(card, viewerCanSeeFaceDown) {
@@ -69,6 +77,59 @@ function cardHtml(card, viewerCanSeeFaceDown) {
 function faceDownHtml() {
   return `<div class="card face-down"></div>`;
 }
+
+const TYPE_LABEL = { monster: '몬스터 카드', spell: '마법 카드', trap: '함정 카드' };
+
+function showCardDetail(card) {
+  if (!card) return;
+  const isMonster = card.type === 'monster';
+
+  if (isMonster && card.image) {
+    els.cardDetailArt.style.display = 'block';
+    els.cardDetailArt.style.backgroundImage = `url('${card.image}')`;
+    els.cardDetailEmoji.style.display = 'none';
+  } else {
+    els.cardDetailArt.style.display = 'none';
+    els.cardDetailEmoji.style.display = 'block';
+    els.cardDetailEmoji.textContent = card.emoji || '';
+  }
+
+  els.cardDetailName.textContent = card.name;
+
+  const metaParts = [TYPE_LABEL[card.type] || card.type];
+  if (isMonster) {
+    metaParts.push(`레벨 ${card.level || '?'}`);
+    metaParts.push(`공격력 ${card.currentAtk} / 수비력 ${card.def}`);
+    metaParts.push(card.position === 'defense' ? '수비 표시' : '공격 표시');
+    if (card.faceDown) metaParts.push('세트 상태');
+    if (card.effectNegated) metaParts.push('효과 무효화됨');
+  }
+  els.cardDetailMeta.textContent = metaParts.join(' · ');
+  els.cardDetailDesc.textContent = card.description || '';
+
+  els.cardDetailOverlay.classList.remove('hidden');
+}
+
+function hideCardDetail() {
+  els.cardDetailOverlay.classList.add('hidden');
+}
+
+function attachInspect(el, card, viewerCanSeeFaceDown) {
+  if (!card) return;
+  if (card.faceDown && !viewerCanSeeFaceDown) return; // 상대의 뒷면 카드는 정보를 보여주지 않음
+  el.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    showCardDetail(card);
+  });
+}
+
+els.cardDetailClose.addEventListener('click', hideCardDetail);
+els.cardDetailOverlay.addEventListener('click', (e) => {
+  if (e.target === els.cardDetailOverlay) hideCardDetail();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') hideCardDetail();
+});
 
 function makeActionBtn(label, onClick) {
   const btn = document.createElement('button');
@@ -133,7 +194,10 @@ function render() {
     zone.className = 'field-zone';
     zone.dataset.side = 'ai';
     zone.dataset.index = String(i);
-    if (card) zone.innerHTML = cardHtml(card, false);
+    if (card) {
+      zone.innerHTML = cardHtml(card, false);
+      attachInspect(zone, card, false);
+    }
     zone.addEventListener('click', () => onFieldClick('ai', i));
     els.aiField.appendChild(zone);
   });
@@ -146,7 +210,10 @@ function render() {
     if (selectedTributes.includes(i)) zone.classList.add('tribute-selected');
     zone.dataset.side = 'player';
     zone.dataset.index = String(i);
-    if (card) zone.innerHTML = cardHtml(card, true);
+    if (card) {
+      zone.innerHTML = cardHtml(card, true);
+      attachInspect(zone, card, true);
+    }
     zone.addEventListener('click', () => onFieldClick('player', i));
     els.playerField.appendChild(zone);
   });
@@ -157,7 +224,10 @@ function render() {
     zone.className = 'field-zone spell-zone';
     zone.dataset.side = 'ai';
     zone.dataset.index = String(i);
-    if (card) zone.innerHTML = cardHtml(card, false);
+    if (card) {
+      zone.innerHTML = cardHtml(card, false);
+      attachInspect(zone, card, false);
+    }
     els.aiSpellField.appendChild(zone);
   });
 
@@ -167,7 +237,10 @@ function render() {
     zone.className = 'field-zone spell-zone';
     zone.dataset.side = 'player';
     zone.dataset.index = String(i);
-    if (card) zone.innerHTML = cardHtml(card, true);
+    if (card) {
+      zone.innerHTML = cardHtml(card, true);
+      attachInspect(zone, card, true);
+    }
     zone.addEventListener('click', () => onSpellZoneClick('player', i));
     els.playerSpellField.appendChild(zone);
   });
@@ -190,6 +263,7 @@ function render() {
     if (selectedHand === i) cardEl.classList.add('selected');
     if (!knownHandUids.player.has(card.uid)) cardEl.classList.add('drawn-player');
     cardEl.addEventListener('click', () => onHandClick(i));
+    attachInspect(cardEl, card, true);
     els.playerHand.appendChild(cardEl);
   });
   knownHandUids.player = new Set(state.player.hand.map((c) => c.uid));

@@ -34,6 +34,7 @@
       <button id="end-turn-btn">턴 종료</button>
     </div>
     <div id="hand-actions"></div>
+    <div id="inspect-hint">카드를 우클릭하면 효과를 확인할 수 있습니다.</div>
     <div id="log"></div>
   </div>
 
@@ -57,6 +58,17 @@
   <div id="game-over-box">
     <div id="game-over-message"></div>
     <button id="restart-btn">다시 하기</button>
+  </div>
+</div>
+
+<div id="card-detail-overlay" class="hidden">
+  <div id="card-detail-box">
+    <button id="card-detail-close" type="button" aria-label="닫기">×</button>
+    <div id="card-detail-art"></div>
+    <div id="card-detail-emoji"></div>
+    <div id="card-detail-name"></div>
+    <div id="card-detail-meta"></div>
+    <div id="card-detail-desc"></div>
   </div>
 </div>
 

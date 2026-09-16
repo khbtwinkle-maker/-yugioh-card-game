@@ -322,6 +322,11 @@ body {
   font-weight: bold;
 }
 
+#inspect-hint {
+  font-size: 0.75em;
+  color: #7a6fa0;
+}
+
 #log {
   width: 100%;
   max-width: 480px;
@@ -333,6 +338,90 @@ body {
   padding: 6px 10px;
   font-size: 0.8em;
   color: #c9bfe8;
+}
+
+#card-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 3, 12, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 20px;
+}
+
+#card-detail-overlay.hidden {
+  display: none;
+}
+
+#card-detail-box {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  background: linear-gradient(160deg, #241a3d, #1c1533);
+  border: 2px solid #7b4fc9;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+#card-detail-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #c9bfe8;
+  font-size: 1.4em;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+#card-detail-close:hover {
+  color: #ffd76a;
+}
+
+#card-detail-art {
+  width: 100%;
+  aspect-ratio: 233 / 184;
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  border: 2px solid #5a3d10;
+  display: none;
+}
+
+#card-detail-emoji {
+  font-size: 3em;
+  display: none;
+}
+
+#card-detail-name {
+  font-size: 1.15em;
+  font-weight: bold;
+  color: #ffd76a;
+  margin-top: 6px;
+}
+
+#card-detail-meta {
+  font-size: 0.85em;
+  color: #a89bd0;
+  font-variant-numeric: tabular-nums;
+}
+
+#card-detail-desc {
+  margin-top: 8px;
+  font-size: 0.9em;
+  line-height: 1.5;
+  color: #e6e0f5;
+  text-align: left;
 }
 
 #game-over-overlay {
