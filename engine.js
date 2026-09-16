@@ -967,16 +967,20 @@ function attack(state, side, attackerIndex, targetIndex) {
         attacker.hasAttackedThisTurn = true;
       }
     } else if (attacker.currentAtk > defender.currentAtk) {
+      const dmg = attacker.currentAtk - defender.currentAtk;
       opp.field[targetIndex] = null;
       opp.graveyard.push(defender);
-      addLog(state, `${attacker.name}(이)가 ${defender.name}을(를) 파괴했습니다.`);
+      opp.lp = Math.max(0, opp.lp - dmg);
+      addLog(state, `${attacker.name}(이)가 ${defender.name}을(를) 파괴했습니다! 상대에게 ${dmg} 데미지.`);
       attacker.hasAttackedThisTurn = true;
       triggerOnSentToGraveyard(state, otherSide(side), defender);
       triggerOnBattleDestroy(state, side, attacker);
     } else if (attacker.currentAtk < defender.currentAtk) {
+      const dmg = defender.currentAtk - attacker.currentAtk;
       p.field[attackerIndex] = null;
       p.graveyard.push(attacker);
-      addLog(state, `${defender.name}(이)가 ${attacker.name}을(를) 파괴했습니다.`);
+      p.lp = Math.max(0, p.lp - dmg);
+      addLog(state, `${defender.name}(이)가 ${attacker.name}을(를) 파괴했습니다! 자신은 ${dmg} 데미지를 입었습니다.`);
       triggerOnSentToGraveyard(state, side, attacker);
     } else {
       opp.field[targetIndex] = null;
